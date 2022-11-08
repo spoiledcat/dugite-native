@@ -1,35 +1,12 @@
-const path = require('path')
-const fs = require('fs')
-const Octokit = require('@octokit/rest')
-const rp = require('request-promise')
+import { Octokit } from '@octokit/rest'
+import { updateGitLfsDependencies } from './lib/dependencies'
+import fetch from 'node-fetch'
 
 process.on('unhandledRejection', reason => {
   console.log(reason)
 })
 
-function updateDependencies(
-  /** @type {string} */
-  version,
-  /** @type {Array<{platform: string, arch: string, name: string, checksum: string}>} */
-  files
-) {
-  const dependenciesPath = path.resolve(__dirname, '..', 'dependencies.json')
-  const dependenciesText = fs.readFileSync(dependenciesPath, 'utf8')
-  const dependencies = JSON.parse(dependenciesText)
-
-  const gitLfs = {
-    version: version,
-    files: files,
-  }
-
-  const updatedDependencies = { ...dependencies, 'git-lfs': gitLfs }
-
-  const newDepedenciesText = JSON.stringify(updatedDependencies, null, 2)
-
-  fs.writeFileSync(dependenciesPath, newDepedenciesText, 'utf8')
-}
-
-function getPlatform(/** @type {string} */ fileName) {
+function getPlatform(fileName: string) {
   if (fileName.match(/-windows-/)) {
     return 'windows'
   }
@@ -43,25 +20,22 @@ function getPlatform(/** @type {string} */ fileName) {
   throw new Error(`Unable to find platform for file: ${fileName}`)
 }
 
-function getArch(/** @type {string} */ fileName) {
+function getArch(fileName: string) {
   if (fileName.match(/-amd64-/)) {
     return 'amd64'
   }
   if (fileName.match(/-386-/)) {
     return 'x86'
   }
-  if (fileName.match(/-arm64-/)) {
-    return 'arm64'
-  }
 
   throw new Error(`Unable to find arch for file: ${fileName}`)
 }
 
-async function run() {
+async function run(): Promise<boolean> {
   const token = process.env.GITHUB_ACCESS_TOKEN
   if (token == null) {
     console.log(`🔴 No GITHUB_ACCESS_TOKEN environment variable set`)
-    return
+    return false
   }
 
   const octokit = new Octokit({ auth: `token ${token}` })
@@ -81,8 +55,7 @@ async function run() {
 
   console.log(`✅ Newest git-lfs release '${version}'`)
 
-  /** @type {{ data: Array<{name: string, url: string}>}} */
-  const assets = await octokit.repos.listAssetsForRelease({
+  const assets = await octokit.repos.listReleaseAssets({
     owner,
     repo,
     release_id: id,
@@ -95,28 +68,20 @@ async function run() {
     console.log(
       `🔴 Could not find signatures. Got files: ${JSON.stringify(foundFiles)}`
     )
-    return
+    return false
   }
 
   console.log(`✅ Found SHA256 signatures for release '${version}'`)
 
-  const { url } = signaturesFile
-  const options = {
-    url,
+  const fileContents = await fetch(signaturesFile.url, {
     headers: {
       Accept: 'application/octet-stream',
       'User-Agent': 'dugite-native',
-      Authorization: `token ${token}`,
     },
-    secureProtocol: 'TLSv1_2_method',
-  }
-
-  const fileContents = await rp(options)
+  }).then(x => x.text())
 
   const files = [
-    `git-lfs-darwin-amd64-${version}.tar.gz`,
     `git-lfs-linux-amd64-${version}.tar.gz`,
-    `git-lfs-linux-arm64-${version}.tar.gz`,
     `git-lfs-windows-386-${version}.zip`,
     `git-lfs-windows-amd64-${version}.zip`,
   ]
@@ -142,9 +107,10 @@ async function run() {
     }
   }
 
-  updateDependencies(version, newFiles)
+  updateGitLfsDependencies(version, newFiles)
 
   console.log(`✅ Updated dependencies metadata to Git LFS '${version}'`)
+  return true
 }
 
-run()
+run().then(success => process.exit(success ? 0 : 1))

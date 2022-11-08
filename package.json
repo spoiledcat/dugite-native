@@ -3,37 +3,37 @@
   "description": "ad-hoc scripts for helping to contribute",
   "scripts": {
     "check": "tsc",
-    "update-test-harness": "node script/update-test-harness.js",
-    "update-git": "node script/update-git.js && npm run prettier-fix",
-    "update-git-lfs": "node script/update-git-lfs.js && npm run prettier-fix",
-    "generate-release-notes": "node script/generate-release-notes.js",
-    "prettier": "prettier -l **/*.y{,a}ml **/*.{js,ts,json}",
-    "prettier-fix": "prettier --write **/*.y{,a}ml **/*.{js,ts,json}",
-    "generate-all-config": "npm run generate-appveyor-config && npm run generate-travis-config && npm run prettier-fix",
-    "generate-appveyor-config": "node script/generate-appveyor-config.js",
-    "generate-travis-config": "node script/generate-travis-config.js"
+    "update-git": "ts-node script/update-git.ts",
+    "update-git-lfs": "ts-node script/update-git-lfs.ts && npm run prettier-fix",
+    "generate-release-notes": "ts-node script/generate-release-notes.ts",
+    "prettier": "prettier -l \"**/*.y{,a}ml\" \"**/*.{js,ts,json}\"",
+    "prettier-fix": "prettier --write \"**/*.y{,a}ml\" \"**/*.{js,ts,json}\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/desktop/dugite-native.git"
   },
   "author": "",
-  "license": "GPLv2",
+  "license": "GPL-2.0-only",
   "bugs": {
     "url": "https://github.com/desktop/dugite-native/issues"
   },
   "homepage": "https://github.com/desktop/dugite-native#readme",
   "devDependencies": {
-    "@octokit/rest": "^16.19.0",
-    "@types/node": "^11.11.3",
-    "@types/request-promise": "^4.1.42",
-    "@types/semver": "^5.5.0",
-    "@types/yaml": "^1.0.2",
-    "prettier": "^1.16.4",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4",
-    "semver": "^5.6.0",
-    "typescript": "^3.3.3333",
-    "yaml": "^1.4.0"
+    "@octokit/rest": "^18.0.9",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^14.14.6",
+    "@types/node-fetch": "^2.5.7",
+    "@types/semver": "^6.0.0",
+    "@types/yaml": "^1.9.7",
+    "@types/yargs": "^13.0.3",
+    "glob": "^7.1.6",
+    "node-fetch": "^2.6.1",
+    "prettier": "^2.1.2",
+    "semver": "^6.1.1",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5",
+    "yaml": "^1.10.0",
+    "yargs": "^16.1.0"
   }
 }
