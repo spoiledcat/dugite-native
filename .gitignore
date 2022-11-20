@@ -8,3 +8,4 @@ build
 *.lzma
 *.sha256
 .node-version
+script/release_notes.txt

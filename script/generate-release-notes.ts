@@ -48,6 +48,7 @@ export default class GenerateReleaseNotes {
 
   private owner = 'spoiledcat'
   private repo = 'dugite-native'
+  private upstream = 'desktop'
 
   constructor() {
     console.log('Starting to generate release notes..')
@@ -172,17 +173,28 @@ export default class GenerateReleaseNotes {
     const releaseNotesEntries: Array<string> = []
 
     for (const pullRequestId of pullRequestIds) {
-      const result = await octokit.pulls.get({
-        owner: this.owner,
-        repo: this.repo,
-        pull_number: pullRequestId,
-      })
-      const { title, number, user } = result.data
-      const entry = ` - ${title} - #${number} via @${user.login}`
+      let entry : string = ''
+      try {
+        // see if the PR is on this repo
+        entry = await this.getPullRequest(octokit, this.owner, pullRequestId);
+      } catch {
+        // check upstream
+        entry = await this.getPullRequest(octokit, this.upstream, pullRequestId);
+      }
       releaseNotesEntries.push(entry)
     }
 
     return releaseNotesEntries
+  }
+
+  async getPullRequest(octokit: Octokit, owner: string, pullRequestId: number) : Promise<string> {
+    const result = await octokit.pulls.get({
+      owner: owner,
+      repo: this.repo,
+      pull_number: pullRequestId,
+    })
+    const { title, number, user } = result.data
+    return ` - ${title} - #${number} via @${user.login}`
   }
 
   /**
