@@ -173,13 +173,13 @@ export default class GenerateReleaseNotes {
     const releaseNotesEntries: Array<string> = []
 
     for (const pullRequestId of pullRequestIds) {
-      let entry : string = ''
+      let entry: string = ''
       try {
         // see if the PR is on this repo
-        entry = await this.getPullRequest(octokit, this.owner, pullRequestId);
+        entry = await this.getPullRequest(octokit, this.owner, pullRequestId)
       } catch {
         // check upstream
-        entry = await this.getPullRequest(octokit, this.upstream, pullRequestId);
+        entry = await this.getPullRequest(octokit, this.upstream, pullRequestId)
       }
       releaseNotesEntries.push(entry)
     }
@@ -187,7 +187,11 @@ export default class GenerateReleaseNotes {
     return releaseNotesEntries
   }
 
-  async getPullRequest(octokit: Octokit, owner: string, pullRequestId: number) : Promise<string> {
+  async getPullRequest(
+    octokit: Octokit,
+    owner: string,
+    pullRequestId: number
+  ): Promise<string> {
     const result = await octokit.pulls.get({
       owner: owner,
       repo: this.repo,
